@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test Shop</title>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/v4-shims.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</head>
+
+<body>
+
+    <style>
+        .search-group {
+            position: relative;
+        }
+
+        .clean {
+            position: absolute;
+            cursor: pointer;
+            padding: 3px;
+            bottom: 3px;
+            right: 12%;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .list {
+            background-color: #FFFAF4;
+            position: absolute;
+            width: 400px;
+            top: 50px;
+
+            z-index: 100;
+
+        }
+        .list li {
+            list-style-type: none;
+        }
+        .list li:hover {
+            cursor: pointer;
+            background-color: #f5f5f5;
+
+        }
+        .card-img-top {
+            border-bottom: 1px gray solid;
+        }
+    </style>
+    <div id="app">
+        <div class="container">
+
+
+            <nav class="navbar navbar-expand-lg  bg-light ">
+                <div class="container-fluid d-flex px-3">
+                    <a class="navbar-brand" href="#">test Shop</a>
+                    <form class="d-flex px-5 justify-content-center form-group">
+
+                        <div class="search-group d-flex">
+                            <input class="form-control search" placeholder="Search" aria-label="Search"
+                                style="width:350px;" v-model.trim="txt">
+                            <span class="clean" v-if="txt.length > 0 " data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="清空" @click="cleanTxt">
+                                X</span>
+                            <button class="btn btn-outline-success"><i class="fas fa-search"></i></button>
+                        </div>
+
+                        <ul class="list list-group " v-if="open">
+                            <li class="px-2 my-1" v-for="(item, i) in suggestion" :key="i"
+                                @click="filterData(item.item.name)">
+                                <i class="fas fa-search"></i> {{item.item.name}}</li>
+                        </ul>
+
+                    </form>
+
+                    <ul class="navbar-nav  mb-2 mb-lg-0 ">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">登入</a>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </nav>
+            <h5 class="text-secondary mt-3 font-wight-bold"><span v-if="suggestion.length > 1">你目前搜尋的是" {{txt}}
+                    "，</span>共有
+                <strong class="text-dark">{{shopNumber}}</strong> 家</h5>
+
+            <div class="row">
+                <div class="col-4 mb-3" v-for="(item, i) in newData" :key="i">
+
+                    <div class="card " style="width: 24rem;">
+                        <img class="card-img-top " loading="lazy" :src="item.detail.image"
+                            style="height:150px; background-size:cover;">
+                        <!--lazy load-->
+                        <div class="card-body">
+                            <h3 class="card-title text-center">{{item.item.name}}</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!--Bootstrap-->
+
+
+    <script src="https://use.fontawesome.com/abccd1a1da.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous">
+    </script>
+    <!--Vue-->
+    <script src="https://unpkg.com/vue"></script>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+
+                data: [],
+                newData: [],
+                shopName: [],
+                suggestion: [],
+                shopNumber: 0,
+                open: false,
+                txt: ''
+            },
+            methods: {
+                getData() {
+                    const self = this;
+                  // api 填空(拿掉) //
+                    console.log(api);
+                    $.get(api).then(function (res) {
+
+                        self.data = Object.values(res); // Object.values 物件轉陣列  因為物件沒有length
+                        console.log(self.data);
+                        self.newData = self.data;
+                        self.shopNumber = self.data.length;
+                        self.shopName = self.data.item.name;
+                        console.log(self.shopNumber);
+                    })
+                },
+                cleanTxt() {
+                    const self = this;
+                    self.txt = ''; //清空搜尋
+                },
+                filterData(key) {
+                    const self = this;
+                    self.txt = key;
+
+                },
+                searchData(txt) {
+                    const self = this;
+                    const newTxt = txt.toUpperCase(); //把英文統一轉換成大寫 統一大小寫格式 才過濾的到
+                    const searchData = self.data.filter(item => {
+                        const NewItem = item.item.name.toUpperCase(); //把英文統一轉換成大寫
+                        return NewItem.includes(newTxt); //NewItem 裡有沒有包含 newTxt的字
+                    });
+                    self.newData = searchData;
+                    self.suggestion = searchData.slice(0, 10); //顯示10個提示
+                    self.shopNumber = searchData.length; //商店數量
+                    self.open = true; //打開搜尋提示 suggestion
+
+                    if (newTxt == '') { // 搜尋 input 為空時要出現所有電商
+                        self.newData = self.data;
+                        self.open = false; // 搜尋 input 為空 關掉搜尋提示 suggestion
+
+                    }
+                    if (self.suggestion.length == 1) { //搜尋提示配對到後 清空搜尋提示 suggestion
+                        self.suggestion = [];
+                    }
+                }
+
+            },
+            watch: {
+                txt: function (txt) { //監控search 有沒有輸入
+                    const self = this;
+                    self.searchData(txt);
+
+                }
+            },
+            created() {
+                this.getData(); //抓Data 資料
+            },
+        });
+    </script>
+
+
+</body>
+
+</html>
